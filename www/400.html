@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>400 // NERV SYSTEM</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --orange: #FF6B00;
+      --red: #CC1100;
+      --amber: #FFB000;
+      --dark: #0A0A0A;
+      --panel: #0F0F0F;
+      --border: #2A1A00;
+      --text: #FF8C00;
+      --dim: #663300;
+      --white: #FFD090;
+      --scan: rgba(255, 107, 0, 0.03);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden;
+    }
+
+    /* CRT scanlines */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          var(--scan) 2px,
+          var(--scan) 4px);
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Screen flicker */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 107, 0, 0.015);
+      animation: flicker 8s infinite;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @keyframes flicker {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      92% {
+        opacity: 1
+      }
+
+      93% {
+        opacity: 0.7
+      }
+
+      94% {
+        opacity: 1
+      }
+
+      96% {
+        opacity: 0.85
+      }
+
+      97% {
+        opacity: 1
+      }
+    }
+
+    .container {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 48px 1fr 40px;
+      grid-template-columns: 280px 1fr;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      grid-column: 1 / -1;
+      border-bottom: 1px solid var(--orange);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 24px;
+      background: var(--panel);
+      position: relative;
+    }
+
+    .topbar::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--red);
+      opacity: 0.4;
+    }
+
+    .nerv-logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 6px;
+      color: var(--orange);
+      text-transform: uppercase;
+    }
+
+    .nerv-logo span {
+      color: var(--red);
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--dim);
+    }
+
+    .topbar-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    .topbar-status {
+      margin-left: auto;
+      font-size: 10px;
+      color: var(--red);
+      letter-spacing: 2px;
+      animation: blink 1.2s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .topbar-time {
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: 1px;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: var(--panel);
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      overflow: hidden;
+    }
+
+    .sidebar-section-label {
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .diag-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 1px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(42, 26, 0, 0.5);
+    }
+
+    .diag-item .val {
+      color: var(--amber);
+    }
+
+    .diag-item.alert .val {
+      color: var(--red);
+      animation: blink 0.8s step-end infinite;
+    }
+
+    .error-code-big {
+      font-family: 'Orbitron', monospace;
+      font-size: 72px;
+      font-weight: 900;
+      color: var(--red);
+      line-height: 1;
+      letter-spacing: -2px;
+      opacity: 0.15;
+      margin-top: auto;
+      text-align: right;
+      padding-right: 0;
+      user-select: none;
+    }
+
+    /* MAIN CONTENT */
+    .main {
+      padding: 36px 48px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative corner bracket */
+    .main::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 36px;
+      width: 40px;
+      height: 40px;
+      border-top: 2px solid var(--orange);
+      border-left: 2px solid var(--orange);
+      opacity: 0.3;
+    }
+
+    .main::after {
+      content: '';
+      position: absolute;
+      bottom: 28px;
+      right: 36px;
+      width: 40px;
+      height: 40px;
+      border-bottom: 2px solid var(--orange);
+      border-right: 2px solid var(--orange);
+      opacity: 0.3;
+    }
+
+    .error-header {
+      margin-bottom: 8px;
+    }
+
+    .error-code-label {
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .error-code {
+      font-family: 'Orbitron', monospace;
+      font-size: 96px;
+      font-weight: 900;
+      color: var(--orange);
+      line-height: 1;
+      letter-spacing: -3px;
+      position: relative;
+    }
+
+    .error-code::after {
+      content: attr(data-code);
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      color: var(--red);
+      opacity: 0.3;
+      z-index: -1;
+    }
+
+    .error-name-jp {
+      font-size: 13px;
+      letter-spacing: 8px;
+      color: var(--dim);
+      margin-top: 4px;
+      margin-bottom: 24px;
+    }
+
+    .divider-line {
+      height: 1px;
+      background: linear-gradient(90deg, var(--orange) 0%, var(--border) 60%, transparent 100%);
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .divider-line::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: 0;
+      width: 6px;
+      height: 5px;
+      background: var(--orange);
+    }
+
+    .error-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .error-desc {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 2;
+      letter-spacing: 1px;
+      max-width: 520px;
+      margin-bottom: 32px;
+    }
+
+    .terminal-block {
+      border: 1px solid var(--border);
+      background: #060606;
+      padding: 16px 20px;
+      max-width: 560px;
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .terminal-block::before {
+      content: 'MAGI SYSTEM OUTPUT';
+      position: absolute;
+      top: -9px;
+      left: 16px;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--dim);
+      background: #060606;
+      padding: 0 8px;
+    }
+
+    .terminal-line {
+      font-size: 11px;
+      color: var(--dim);
+      line-height: 1.8;
+      letter-spacing: 0.5px;
+    }
+
+    .terminal-line .prompt {
+      color: var(--orange);
+      margin-right: 8px;
+    }
+
+    .terminal-line .out {
+      color: var(--amber);
+    }
+
+    .terminal-line .err {
+      color: var(--red);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 12px;
+      background: var(--orange);
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+
+    /* Animated typing */
+    .typewriter {
+      overflow: hidden;
+      white-space: nowrap;
+      width: 0;
+      animation: typing 2s steps(40) forwards;
+    }
+
+    .typewriter-2 {
+      animation-delay: 2s;
+    }
+
+    .typewriter-3 {
+      animation-delay: 3.5s;
+    }
+
+    @keyframes typing {
+      to {
+        width: 100%;
+      }
+    }
+
+    .action-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: auto;
+      padding-bottom: 16px;
+    }
+
+    .btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 10px 24px;
+      border: 1px solid var(--orange);
+      background: transparent;
+      color: var(--orange);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .btn::before {
+      content: '> ';
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--orange);
+      color: var(--dark);
+    }
+
+    .btn:hover::before {
+      opacity: 1;
+    }
+
+    .btn-ghost {
+      border-color: var(--dim);
+      color: var(--dim);
+    }
+
+    .btn-ghost:hover {
+      background: var(--dim);
+      color: var(--dark);
+      border-color: var(--dim);
+    }
+
+    /* BOTTOM BAR */
+    .bottombar {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 24px;
+      background: var(--panel);
+    }
+
+    .bottombar-item {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    .bottombar-item.hi {
+      color: var(--orange);
+    }
+
+    .bottombar-sep {
+      color: var(--border);
+    }
+
+    /* Progress bar decoration */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .progress-label {
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 2px;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      position: relative;
+      max-width: 160px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--orange);
+    }
+
+    .progress-val {
+      font-size: 9px;
+      color: var(--amber);
+      letter-spacing: 1px;
+    }
+
+    /* Hexagon decoration */
+    .hex-grid {
+      position: absolute;
+      right: 48px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .hex-grid svg {
+      width: 200px;
+      height: 200px;
+    }
+
+    /* Alert badge */
+    .alert-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--red);
+      padding: 6px 14px;
+      margin-bottom: 20px;
+    }
+
+    .alert-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      animation: blink 0.6s step-end infinite;
+    }
+
+    .alert-text {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--red);
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="nerv-logo">NERV<span>//</span>NET</div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-label">Proxy Gateway</div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-label">MAGI</div>
+      <div class="topbar-status">[ ALERT ]</div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-time" id="clock">00:00:00</div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div>
+        <div class="sidebar-section-label">System Diagnostics</div>
+        <div class="diag-item"><span>GATEWAY</span><span class="val">ONLINE</span></div>
+        <div class="diag-item"><span>SSL</span><span class="val">ACTIVE</span></div>
+        <div class="diag-item"><span>UPSTREAM</span><span class="val">UNREACHABLE</span></div>
+        <div class="diag-item alert"><span>HTTP STATUS</span><span class="val">400</span></div>
+        <div class="diag-item"><span>PROTOCOL</span><span class="val">HTTP/2</span></div>
+      </div>
+      <div>
+        <div class="sidebar-section-label">Pattern Analysis</div>
+        <div class="progress-row">
+          <div class="progress-label">SYNTAX</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:14%"></div>
+          </div>
+          <div class="progress-val">14%</div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label">HEADERS</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:32%"></div>
+          </div>
+          <div class="progress-val">32%</div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label">INTEGRITY</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:0%"></div>
+          </div>
+          <div class="progress-val" style="color:var(--red)">FAIL</div>
+        </div>
+      </div>
+      <div style="margin-top:auto">
+        <div class="sidebar-section-label">Magi Consensus</div>
+        <div class="diag-item"><span>MELCHIOR-1</span><span class="val" style="color:var(--red)">REJECT</span></div>
+        <div class="diag-item"><span>BALTHASAR-2</span><span class="val" style="color:var(--red)">REJECT</span></div>
+        <div class="diag-item"><span>CASPAR-3</span><span class="val" style="color:var(--red)">REJECT</span></div>
+      </div>
+      <div class="error-code-big">400</div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="hex-grid">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="var(--orange)">
+          <polygon points="50,10 90,10 110,45 90,80 50,80 30,45" />
+          <polygon points="110,10 150,10 170,45 150,80 110,80 90,45" opacity="0.5" />
+          <polygon points="50,90 90,90 110,125 90,160 50,160 30,125" opacity="0.5" />
+          <polygon points="110,90 150,90 170,125 150,160 110,160 90,125" />
+        </svg>
+      </div>
+
+      <div class="error-header">
+        <div class="error-code-label">// ERROR CODE</div>
+        <div class="error-code" data-code="400">400</div>
+        <div class="error-name-jp">不正なリクエスト</div>
+      </div>
+
+      <div class="divider-line"></div>
+
+      <div class="alert-badge">
+        <div class="alert-dot"></div>
+        <div class="alert-text">Request Integrity Failure Detected</div>
+      </div>
+
+      <div class="error-title">Bad Request</div>
+      <div class="error-desc">
+        The server cannot process this request. The syntax is malformed,<br>
+        the request parameters are invalid, or the data format is incorrect.<br>
+        MAGI system has rejected the transmission on all three nodes.
+      </div>
+
+      <div class="terminal-block">
+        <div class="terminal-line typewriter">
+          <span class="prompt">NERV&gt;</span> analyzing incoming request payload...
+        </div>
+        <div class="terminal-line typewriter typewriter-2">
+          <span class="prompt">NERV&gt;</span> <span class="err">ERROR: malformed request structure [code:400]</span>
+        </div>
+        <div class="terminal-line typewriter typewriter-3">
+          <span class="prompt">NERV&gt;</span> <span class="out">awaiting corrected transmission</span> <span
+            class="cursor"></span>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <a href="javascript:history.back()" class="btn">Go Back</a>
+        <a href="/" class="btn btn-ghost">Home</a>
+      </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottombar">
+      <div class="bottombar-item hi">NERV//NET</div>
+      <div class="bottombar-sep">//</div>
+      <div class="bottombar-item">GEHIRN SECURE GATEWAY</div>
+      <div class="bottombar-sep">//</div>
+      <div class="bottombar-item">PATTERN: BLUE</div>
+      <div class="bottombar-sep">//</div>
+      <div class="bottombar-item">THREAT LEVEL: NOMINAL</div>
+    </div>
+
+  </div>
+  <script>
+    function tick() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toTimeString().slice(0, 8);
+    }
+    tick(); setInterval(tick, 1000);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>502 // NERV SYSTEM</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --orange: #FF6B00;
+      --red: #CC1100;
+      --amber: #FFB000;
+      --dark: #0A0A0A;
+      --panel: #0F0F0F;
+      --border: #2A1A00;
+      --text: #FF8C00;
+      --dim: #663300;
+      --white: #FFD090;
+      --scan: rgba(255, 107, 0, 0.03);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--scan) 2px, var(--scan) 4px);
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 107, 0, 0.015);
+      animation: flicker 4s infinite;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @keyframes flicker {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      10% {
+        opacity: 1
+      }
+
+      11% {
+        opacity: 0.4
+      }
+
+      12% {
+        opacity: 1
+      }
+
+      40% {
+        opacity: 1
+      }
+
+      41% {
+        opacity: 0.7
+      }
+
+      42% {
+        opacity: 0.3
+      }
+
+      43% {
+        opacity: 1
+      }
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.3
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    .container {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 48px 1fr 40px;
+      grid-template-columns: 280px 1fr;
+      border: 1px solid var(--border);
+    }
+
+    .topbar {
+      grid-column: 1/-1;
+      border-bottom: 1px solid var(--red);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 24px;
+      background: var(--panel);
+      position: relative;
+    }
+
+    .topbar::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--red);
+      opacity: 0.6;
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    .nerv-logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 6px;
+      color: var(--orange);
+    }
+
+    .nerv-logo span {
+      color: var(--red);
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--dim);
+    }
+
+    .topbar-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    .topbar-status {
+      margin-left: auto;
+      font-size: 10px;
+      color: var(--red);
+      letter-spacing: 2px;
+      animation: blink 0.6s step-end infinite;
+      font-weight: bold;
+    }
+
+    .topbar-time {
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: 1px;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: var(--panel);
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      overflow: hidden;
+    }
+
+    .sidebar-section-label {
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .diag-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 1px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(42, 26, 0, 0.5);
+    }
+
+    .diag-item .val {
+      color: var(--amber);
+    }
+
+    .diag-item.alert .val {
+      color: var(--red);
+      animation: blink 0.8s step-end infinite;
+    }
+
+    .error-code-big {
+      font-family: 'Orbitron', monospace;
+      font-size: 72px;
+      font-weight: 900;
+      color: var(--red);
+      line-height: 1;
+      letter-spacing: -2px;
+      opacity: 0.15;
+      margin-top: auto;
+      text-align: right;
+      user-select: none;
+    }
+
+    .main {
+      padding: 36px 48px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .main::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 36px;
+      width: 40px;
+      height: 40px;
+      border-top: 2px solid var(--red);
+      border-left: 2px solid var(--red);
+      opacity: 0.4;
+    }
+
+    .main::after {
+      content: '';
+      position: absolute;
+      bottom: 28px;
+      right: 36px;
+      width: 40px;
+      height: 40px;
+      border-bottom: 2px solid var(--red);
+      border-right: 2px solid var(--red);
+      opacity: 0.4;
+    }
+
+    .error-code-label {
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .error-code {
+      font-family: 'Orbitron', monospace;
+      font-size: 96px;
+      font-weight: 900;
+      color: var(--red);
+      line-height: 1;
+      letter-spacing: -3px;
+      position: relative;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .error-code::after {
+      content: attr(data-code);
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      color: var(--orange);
+      opacity: 0.2;
+      z-index: -1;
+    }
+
+    .error-name-jp {
+      font-size: 13px;
+      letter-spacing: 8px;
+      color: var(--dim);
+      margin-top: 4px;
+      margin-bottom: 24px;
+    }
+
+    .divider-line {
+      height: 1px;
+      background: linear-gradient(90deg, var(--red) 0%, var(--border) 60%, transparent 100%);
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .divider-line::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: 0;
+      width: 6px;
+      height: 5px;
+      background: var(--red);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .error-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .error-desc {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 2;
+      letter-spacing: 1px;
+      max-width: 520px;
+      margin-bottom: 32px;
+    }
+
+    .terminal-block {
+      border: 1px solid var(--red);
+      background: #060606;
+      padding: 16px 20px;
+      max-width: 560px;
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .terminal-block::before {
+      content: 'MAGI SYSTEM OUTPUT';
+      position: absolute;
+      top: -9px;
+      left: 16px;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--red);
+      background: #060606;
+      padding: 0 8px;
+    }
+
+    .terminal-line {
+      font-size: 11px;
+      color: var(--dim);
+      line-height: 1.8;
+      letter-spacing: 0.5px;
+    }
+
+    .terminal-line .prompt {
+      color: var(--red);
+      margin-right: 8px;
+    }
+
+    .terminal-line .out {
+      color: var(--amber);
+    }
+
+    .terminal-line .err {
+      color: var(--red);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 12px;
+      background: var(--red);
+      vertical-align: middle;
+      animation: blink 0.7s step-end infinite;
+    }
+
+    .typewriter {
+      overflow: hidden;
+      white-space: nowrap;
+      width: 0;
+      animation: typing 2s steps(40) forwards;
+    }
+
+    .typewriter-2 {
+      animation-delay: 2s;
+    }
+
+    .typewriter-3 {
+      animation-delay: 3.5s;
+    }
+
+    @keyframes typing {
+      to {
+        width: 100%
+      }
+    }
+
+    .action-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: auto;
+      padding-bottom: 16px;
+    }
+
+    .btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 10px 24px;
+      border: 1px solid var(--orange);
+      background: transparent;
+      color: var(--orange);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--orange);
+      color: var(--dark);
+    }
+
+    .btn-ghost {
+      border-color: var(--dim);
+      color: var(--dim);
+    }
+
+    .btn-ghost:hover {
+      background: var(--dim);
+      color: var(--dark);
+      border-color: var(--dim);
+    }
+
+    .bottombar {
+      grid-column: 1/-1;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 24px;
+      background: var(--panel);
+    }
+
+    .bottombar-item {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    .bottombar-item.hi {
+      color: var(--orange);
+    }
+
+    .bottombar-sep {
+      color: var(--border);
+    }
+
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .progress-label {
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 2px;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      max-width: 160px;
+    }
+
+    .progress-fill-anim {
+      height: 100%;
+      background: var(--red);
+      animation: retry 3s linear infinite;
+    }
+
+    @keyframes retry {
+      0% {
+        width: 0%
+      }
+
+      80% {
+        width: 100%
+      }
+
+      100% {
+        width: 100%
+      }
+    }
+
+    .progress-val {
+      font-size: 9px;
+      color: var(--amber);
+      letter-spacing: 1px;
+    }
+
+    .alert-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--red);
+      padding: 6px 14px;
+      margin-bottom: 20px;
+    }
+
+    .alert-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      animation: blink 0.4s step-end infinite;
+    }
+
+    .alert-text {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--red);
+      text-transform: uppercase;
+    }
+
+    /* Connection attempt animation */
+    .conn-nodes {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 2px;
+    }
+
+    .conn-node {
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      background: #060606;
+      white-space: nowrap;
+    }
+
+    .conn-node.active {
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+
+    .conn-node.dead {
+      border-color: var(--red);
+      color: var(--red);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    .conn-line {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .conn-dot {
+      width: 4px;
+      height: 4px;
+      background: var(--dim);
+      border-radius: 50%;
+    }
+
+    .conn-dot:nth-child(1) {
+      animation: pulse 1s 0s ease-in-out infinite;
+    }
+
+    .conn-dot:nth-child(2) {
+      animation: pulse 1s 0.3s ease-in-out infinite;
+    }
+
+    .conn-dot:nth-child(3) {
+      animation: pulse 1s 0.6s ease-in-out infinite;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="nerv-logo">NERV<span>//</span>NET</div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-label">Proxy Gateway</div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-label">MAGI</div>
+      <div class="topbar-status">[ UPSTREAM FAILURE ]</div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-time" id="clock">00:00:00</div>
+    </div>
+
+    <div class="sidebar">
+      <div>
+        <div class="sidebar-section-label">Upstream Status</div>
+        <div class="diag-item"><span>GATEWAY</span><span class="val">ONLINE</span></div>
+        <div class="diag-item"><span>SSL</span><span class="val">ACTIVE</span></div>
+        <div class="diag-item alert"><span>UPSTREAM</span><span class="val">DOWN</span></div>
+        <div class="diag-item alert"><span>HTTP STATUS</span><span class="val" id="statusCode">502</span></div>
+        <div class="diag-item alert"><span>RETRIES</span><span class="val" id="retryCount">0</span></div>
+      </div>
+      <div>
+        <div class="sidebar-section-label">Reconnect Attempt</div>
+        <div class="progress-row">
+          <div class="progress-label">CONNECT</div>
+          <div class="progress-bar">
+            <div class="progress-fill-anim"></div>
+          </div>
+          <div class="progress-val">...</div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label">TIMEOUT</div>
+          <div class="progress-bar">
+            <div class="progress-fill-anim" style="animation-delay:1s"></div>
+          </div>
+          <div class="progress-val">...</div>
+        </div>
+      </div>
+      <div>
+        <div class="sidebar-section-label">Magi Consensus</div>
+        <div class="diag-item"><span>MELCHIOR-1</span><span class="val" style="color:var(--red)">FAIL</span></div>
+        <div class="diag-item"><span>BALTHASAR-2</span><span class="val" style="color:var(--red)">FAIL</span></div>
+        <div class="diag-item"><span>CASPAR-3</span><span class="val" style="color:var(--red)">FAIL</span></div>
+      </div>
+      <div class="error-code-big" id="bigCode">502</div>
+    </div>
+
+    <div class="main">
+      <div>
+        <div class="error-code-label">// ERROR CODE</div>
+        <div class="error-code" data-code="502" id="mainCode">502</div>
+        <div class="error-name-jp" id="codeJp">不正なゲートウェイ</div>
+      </div>
+
+      <div class="divider-line"></div>
+
+      <div class="alert-badge">
+        <div class="alert-dot"></div>
+        <div class="alert-text" id="alertText">Backend Service Offline — Gateway Cannot Connect</div>
+      </div>
+
+      <div class="error-title" id="errorTitle">Bad Gateway</div>
+      <div class="error-desc" id="errorDesc">
+        The NERV gateway received an invalid response from the upstream service.<br>
+        The backend application appears to be offline or not responding.<br>
+        Please wait while the system attempts to re-establish the connection.
+      </div>
+
+      <div class="conn-nodes">
+        <div class="conn-node active">NGINX PROXY</div>
+        <div class="conn-line">
+          <div class="conn-dot"></div>
+          <div class="conn-dot"></div>
+          <div class="conn-dot"></div>
+        </div>
+        <div class="conn-node dead">UPSTREAM</div>
+      </div>
+
+      <div class="terminal-block">
+        <div class="terminal-line typewriter">
+          <span class="prompt">NERV&gt;</span> establishing upstream connection...
+        </div>
+        <div class="terminal-line typewriter typewriter-2">
+          <span class="prompt">NERV&gt;</span> <span class="err" id="termErr">ERROR: upstream returned invalid response
+            [502]</span>
+        </div>
+        <div class="terminal-line typewriter typewriter-3">
+          <span class="prompt">NERV&gt;</span> <span class="out">service may be restarting — try again shortly</span>
+          <span class="cursor"></span>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <a href="javascript:location.reload()" class="btn">Retry</a>
+        <a href="javascript:history.back()" class="btn btn-ghost">Go Back</a>
+      </div>
+    </div>
+
+    <div class="bottombar">
+      <div class="bottombar-item hi">NERV//NET</div>
+      <div class="bottombar-sep">//</div>
+      <div class="bottombar-item">GEHIRN SECURE GATEWAY</div>
+      <div class="bottombar-sep">//</div>
+      <div class="bottombar-item">PATTERN: ORANGE</div>
+      <div class="bottombar-sep">//</div>
+      <div class="bottombar-item">UPSTREAM: UNREACHABLE</div>
+    </div>
+  </div>
+  <script>
+    function tick() { document.getElementById('clock').textContent = new Date().toTimeString().slice(0, 8); }
+    tick(); setInterval(tick, 1000);
+
+    // Retry counter animation
+    let retries = 0;
+    setInterval(() => {
+      retries++;
+      document.getElementById('retryCount').textContent = retries;
+    }, 3000);
+
+    // Adapt text based on actual status code from URL or meta
+    // Nginx can pass the status via query string if needed
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code') || '502';
+    const texts = {
+      '502': { jp: '不正なゲートウェイ', title: 'Bad Gateway', alert: 'Backend Service Offline', desc: 'The NERV gateway received an invalid response from the upstream service.<br>The backend application appears to be offline or not responding.<br>Please wait while the system attempts to re-establish the connection.', term: 'ERROR: upstream returned invalid response [502]' },
+      '503': { jp: 'サービス利用不可', title: 'Service Unavailable', alert: 'Service Temporarily Unavailable', desc: 'The upstream service is temporarily unavailable or under maintenance.<br>NERV systems are standing by for the service to come back online.<br>This is likely a transient condition — please retry in a moment.', term: 'ERROR: service unavailable — maintenance in progress [503]' },
+      '504': { jp: 'ゲートウェイタイムアウト', title: 'Gateway Timeout', alert: 'Upstream Timeout — No Response Received', desc: 'The upstream service failed to respond within the allotted time window.<br>The connection was established but no data was received from the backend.<br>The service may be under heavy load. Please retry your request.', term: 'ERROR: upstream timeout — no response within threshold [504]' },
+    };
+    const t = texts[code] || texts['502'];
+    document.getElementById('mainCode').textContent = code;
+    document.getElementById('mainCode').dataset.code = code;
+    document.getElementById('bigCode').textContent = code;
+    document.getElementById('statusCode').textContent = code;
+    document.getElementById('codeJp').textContent = t.jp;
+    document.getElementById('errorTitle').textContent = t.title;
+    document.getElementById('errorDesc').innerHTML = t.desc;
+    document.getElementById('alertText').textContent = t.alert;
+    document.getElementById('termErr').textContent = t.term;
+  </script>
+</body>
+
+</html>
